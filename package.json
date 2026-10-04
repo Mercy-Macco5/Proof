@@ -13,6 +13,10 @@
     "expo-image-picker": "~55.0.11",
     "expo-status-bar": "~3.0.9",
     "react": "19.2.0",
-    "react-native": "0.83.0"
+    "react-native": "0.83.0",
+    "@solana-mobile/mobile-wallet-adapter-protocol": "2.3.0",
+    "@solana-mobile/mobile-wallet-adapter-protocol-web3js": "2.3.0",
+    "@solana/web3.js": "1.98.4",
+    "expo-dev-client": "~55.0.40"
   }
 }
