@@ -6,8 +6,18 @@
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "android": {
-      "package": "com.mercyar.proof"
+      "package": "com.mercyar.proof",
+      "permissions": [
+        "CAMERA"
+      ]
     },
-    "plugins": ["expo-image-picker"]
+    "plugins": [
+      "expo-image-picker"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": ""
+      }
+    }
   }
 }
