@@ -1,0 +1,13 @@
+{
+  "expo": {
+    "name": "PROOF",
+    "slug": "proof",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "android": {
+      "package": "com.mercyar.proof"
+    },
+    "plugins": ["expo-image-picker"]
+  }
+}
