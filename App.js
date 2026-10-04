@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from "react";
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import { transact } from "@solana-mobile/mobile-wallet-adapter-protocol";
+import { APP_IDENTITY, connectWallet } from "./src/wallet";
 import { StatusBar } from "expo-status-bar";
 
 const MISSIONS = [
@@ -14,6 +16,16 @@ export default function App() {
   const [selectedMission, setSelectedMission] = useState(null);
   const [submissions, setSubmissions] = useState([]);
   const [earned, setEarned] = useState(23.5);
+  const [wallet, setWallet] = useState(null);
+
+  async function handleConnect() {
+    try {
+      const account = await connectWallet();
+      setWallet(account);
+    } catch (error) {
+      console.log("Wallet connection cancelled or failed", error);
+    }
+  }
 
   const selectedStatus = useMemo(() => {
     if (!selectedMission) return null;
@@ -67,6 +79,10 @@ export default function App() {
               <Text style={styles.eyebrow}>GOOD WORK DESERVES</Text>
               <Text style={styles.heroTitle}>Good proof.</Text>
               <Text style={styles.heroCopy}>Complete real missions, submit proof, and get paid when your work is approved.</Text>
+              <TouchableOpacity style={styles.walletButton} onPress={handleConnect}>
+                <Text style={styles.walletButtonText}>{wallet ? "WALLET CONNECTED" : "CONNECT WALLET"}</Text>
+              </TouchableOpacity>
+              {wallet && <Text style={styles.walletAddress}>{wallet.slice(0, 6)}...{wallet.slice(-6)}</Text>}
             </View>
             <View style={styles.stats}>
               <Stat label="EARNED" value={"$" + earned.toFixed(2)} />
@@ -179,6 +195,9 @@ const styles = StyleSheet.create({
   eyebrow: { fontSize: 11, fontWeight: "800", letterSpacing: 1.5, color: "#77736C", marginBottom: 10 },
   heroTitle: { fontSize: 48, lineHeight: 52, fontWeight: "900", letterSpacing: -2, color: "#111111" },
   heroCopy: { fontSize: 16, lineHeight: 24, color: "#5F5B55", marginTop: 14, maxWidth: 330 },
+  walletButton: { marginTop: 20, backgroundColor: "#111111", borderRadius: 14, minHeight: 52, alignItems: "center", justifyContent: "center", paddingHorizontal: 18 },
+  walletButtonText: { color: "#FFFFFF", fontSize: 11, fontWeight: "900", letterSpacing: 1 },
+  walletAddress: { marginTop: 8, color: "#77736C", fontSize: 12, fontWeight: "700" },
   stats: { flexDirection: "row", borderTopWidth: 1, borderBottomWidth: 1, borderColor: "#D7D2C9", paddingVertical: 18, marginBottom: 34 },
   stat: { flex: 1 },
   statValue: { fontSize: 20, fontWeight: "800", color: "#111111" },
