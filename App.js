@@ -3,6 +3,7 @@ import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } fr
 import * as ImagePicker from "expo-image-picker";
 import { transact } from "@solana-mobile/mobile-wallet-adapter-protocol";
 import { APP_IDENTITY, connectWallet } from "./src/wallet";
+import { createPaymentIntent, PAYMENT_STATES } from "./src/payment";
 import { StatusBar } from "expo-status-bar";
 
 const MISSIONS = [
@@ -41,7 +42,7 @@ export default function App() {
     if (!selectedMission) return;
     setSubmissions((current) => [
       ...current.filter((item) => item.missionId !== selectedMission.id),
-      { missionId: selectedMission.id, status: "UNDER REVIEW" }
+      { missionId: selectedMission.id, status: PAYMENT_STATES.UNDER_REVIEW, paid: false }
     ]);
     setScreen("submitted");
   }
@@ -56,7 +57,7 @@ export default function App() {
   function approveDemo() {
     if (!selectedMission) return;
     setSubmissions((current) => current.map((item) =>
-      item.missionId === selectedMission.id ? { ...item, status: "APPROVED" } : item
+      item.missionId === selectedMission.id ? { ...item, status: PAYMENT_STATES.PAID, paid: true, paymentIntent: createPaymentIntent({ submissionId: selectedMission.id, contributor: wallet || "demo-wallet", amount: selectedMission.reward }) } : item
     ));
     setEarned((value) => value + selectedMission.reward);
     setScreen("approved");
@@ -121,7 +122,7 @@ export default function App() {
           <View style={styles.center}>
             <Text style={styles.successMark}>✓</Text>
             <Text style={styles.centerTitle}>Under review.</Text>
-            <Text style={styles.centerCopy}>Your proof was submitted. No payment has been released yet.</Text>
+            <Text style={styles.centerCopy}>Your proof was submitted. It is now waiting for creator approval. No payment has been released.</Text>
             <TouchableOpacity style={styles.primary} onPress={() => setScreen("review")}><Text style={styles.primaryText}>VIEW REVIEW FLOW</Text></TouchableOpacity>
           </View>
         )}
@@ -130,17 +131,17 @@ export default function App() {
           <View style={styles.center}>
             <Text style={styles.eyebrow}>CREATOR REVIEW</Text>
             <Text style={styles.centerTitle}>Approve this submission?</Text>
-            <Text style={styles.centerCopy}>In the real app, only the campaign owner can approve a submission and release its reward.</Text>
+            <Text style={styles.centerCopy}>Only the campaign owner can approve a submission. Approval creates a payment intent. The payment service then releases the USDC.</Text>
             <TouchableOpacity style={styles.primary} onPress={approveDemo}><Text style={styles.primaryText}>APPROVE + RELEASE {selectedMission.reward} USDC</Text></TouchableOpacity>
-            <TouchableOpacity style={styles.secondary} onPress={() => setScreen("home")}><Text style={styles.secondaryText}>REJECT / NO PAYMENT</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.secondary} onPress={() => { setSubmissions((current) => current.map((item) => item.missionId === selectedMission.id ? { ...item, status: PAYMENT_STATES.REJECTED, paid: false } : item)); setScreen("home"); }}><Text style={styles.secondaryText}>REJECT / NO PAYMENT</Text></TouchableOpacity>
           </View>
         )}
 
         {screen === "approved" && selectedMission && (
           <View style={styles.center}>
             <Text style={styles.successMark}>✓</Text>
-            <Text style={styles.centerTitle}>Approved. Paid.</Text>
-            <Text style={styles.centerCopy}>{selectedMission.reward} USDC was released and your contribution was added to your verified record.</Text>
+            <Text style={styles.centerTitle}>Approved.</Text>
+            <Text style={styles.centerCopy}>Your submission was approved and the payment intent was created. The payout service releases {selectedMission.reward} USDC only after approval.</Text>
             <TouchableOpacity style={styles.primary} onPress={() => setScreen("profile")}><Text style={styles.primaryText}>VIEW REPUTATION</Text></TouchableOpacity>
           </View>
         )}
