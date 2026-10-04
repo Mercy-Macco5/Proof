@@ -18,6 +18,7 @@ export default function App() {
   const [submissions, setSubmissions] = useState([]);
   const [earned, setEarned] = useState(23.5);
   const [wallet, setWallet] = useState(null);
+  const [role, setRole] = useState("contributor");
 
   async function handleConnect() {
     try {
@@ -69,8 +70,8 @@ export default function App() {
       <View style={styles.app}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => setScreen("home")}><Text style={styles.logo}>PROOF</Text></TouchableOpacity>
-          <TouchableOpacity onPress={() => setScreen("profile")}>
-            <View style={styles.avatar}><Text style={styles.avatarText}>M</Text></View>
+          <TouchableOpacity onPress={() => setScreen(role === "creator" ? "reviewDashboard" : "profile")}>
+            <View style={styles.avatar}><Text style={styles.avatarText}>{role === "creator" ? "C" : "M"}</Text></View>
           </TouchableOpacity>
         </View>
 
@@ -90,6 +91,7 @@ export default function App() {
               <Stat label="CONTRIBUTIONS" value="12" />
               <Stat label="VERIFIED" value="91%" />
             </View>
+            <TouchableOpacity style={styles.roleSwitch} onPress={() => setRole(role === "creator" ? "contributor" : "creator")}><Text style={styles.roleSwitchText}>{role === "creator" ? "SWITCH TO CONTRIBUTOR" : "CREATOR REVIEW"}</Text></TouchableOpacity>
             <Text style={styles.sectionTitle}>AVAILABLE</Text>
             {MISSIONS.map((mission) => <MissionCard key={mission.id} mission={mission} onPress={() => openMission(mission)} />)}
           </ScrollView>
@@ -123,8 +125,27 @@ export default function App() {
             <Text style={styles.successMark}>✓</Text>
             <Text style={styles.centerTitle}>Under review.</Text>
             <Text style={styles.centerCopy}>Your proof was submitted. It is now waiting for creator approval. No payment has been released.</Text>
-            <TouchableOpacity style={styles.primary} onPress={() => setScreen("review")}><Text style={styles.primaryText}>VIEW REVIEW FLOW</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.primary} onPress={() => setScreen("reviewDashboard")}><Text style={styles.primaryText}>VIEW REVIEW FLOW</Text></TouchableOpacity>
           </View>
+        )}
+
+        {screen === "reviewDashboard" && (
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <Text style={styles.eyebrow}>CREATOR</Text>
+            <Text style={styles.detailTitle}>Review work.</Text>
+            <Text style={styles.detailCopy}>Only approved submissions can move to payment.</Text>
+            {submissions.filter((item) => item.status === PAYMENT_STATES.UNDER_REVIEW).length === 0 ? (
+              <View style={styles.emptyBox}><Text style={styles.emptyTitle}>No pending submissions</Text><Text style={styles.emptyCopy}>New contributor submissions will appear here.</Text></View>
+            ) : submissions.filter((item) => item.status === PAYMENT_STATES.UNDER_REVIEW).map((item) => {
+              const mission = MISSIONS.find((m) => m.id === item.missionId);
+              return <View key={item.missionId} style={styles.reviewCard}>
+                <Text style={styles.eyebrow}>{mission?.type}</Text>
+                <Text style={styles.reviewTitle}>{mission?.title}</Text>
+                <Text style={styles.reviewReward}>{mission?.reward} USDC pending</Text>
+                <TouchableOpacity style={styles.primary} onPress={() => { setSelectedMission(mission); setScreen("review"); }}><Text style={styles.primaryText}>OPEN SUBMISSION</Text></TouchableOpacity>
+              </View>;
+            })}
+          </ScrollView>
         )}
 
         {screen === "review" && selectedMission && (
@@ -133,7 +154,7 @@ export default function App() {
             <Text style={styles.centerTitle}>Approve this submission?</Text>
             <Text style={styles.centerCopy}>Only the campaign owner can approve a submission. Approval creates a payment intent. The payment service then releases the USDC.</Text>
             <TouchableOpacity style={styles.primary} onPress={approveDemo}><Text style={styles.primaryText}>APPROVE + RELEASE {selectedMission.reward} USDC</Text></TouchableOpacity>
-            <TouchableOpacity style={styles.secondary} onPress={() => { setSubmissions((current) => current.map((item) => item.missionId === selectedMission.id ? { ...item, status: PAYMENT_STATES.REJECTED, paid: false } : item)); setScreen("home"); }}><Text style={styles.secondaryText}>REJECT / NO PAYMENT</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.secondary} onPress={() => { setSubmissions((current) => current.map((item) => item.missionId === selectedMission.id ? { ...item, status: PAYMENT_STATES.REJECTED, paid: false } : item)); setScreen("reviewDashboard"); }}><Text style={styles.secondaryText}>REJECT / NO PAYMENT</Text></TouchableOpacity>
           </View>
         )}
 
@@ -199,6 +220,14 @@ const styles = StyleSheet.create({
   walletButton: { marginTop: 20, backgroundColor: "#111111", borderRadius: 14, minHeight: 52, alignItems: "center", justifyContent: "center", paddingHorizontal: 18 },
   walletButtonText: { color: "#FFFFFF", fontSize: 11, fontWeight: "900", letterSpacing: 1 },
   walletAddress: { marginTop: 8, color: "#77736C", fontSize: 12, fontWeight: "700" },
+  roleSwitch: { marginBottom: 22, paddingVertical: 12, borderWidth: 1, borderColor: "#C9C3B9", borderRadius: 12, alignItems: "center" },
+  roleSwitchText: { fontSize: 10, fontWeight: "900", letterSpacing: 1 },
+  reviewCard: { backgroundColor: "#FFFFFF", borderRadius: 18, padding: 18, marginTop: 14, borderWidth: 1, borderColor: "#E3DED5" },
+  reviewTitle: { fontSize: 20, fontWeight: "900", lineHeight: 25 },
+  reviewReward: { marginTop: 10, color: "#77736C", fontSize: 13, fontWeight: "800" },
+  emptyBox: { marginTop: 28, padding: 22, borderRadius: 18, backgroundColor: "#E9E4DC" },
+  emptyTitle: { fontSize: 18, fontWeight: "900" },
+  emptyCopy: { marginTop: 7, color: "#5F5B55", lineHeight: 20 },
   stats: { flexDirection: "row", borderTopWidth: 1, borderBottomWidth: 1, borderColor: "#D7D2C9", paddingVertical: 18, marginBottom: 34 },
   stat: { flex: 1 },
   statValue: { fontSize: 20, fontWeight: "800", color: "#111111" },
