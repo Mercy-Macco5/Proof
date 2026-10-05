@@ -1,12 +1,13 @@
-import React, { useMemo, useState } from "react";
-import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React, { useEffect, useMemo, useState } from "react";
+import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import { transact } from "@solana-mobile/mobile-wallet-adapter-protocol";
 import { APP_IDENTITY, connectWallet } from "./src/wallet";
 import { createPaymentIntent, PAYMENT_STATES } from "./src/payment";
 import { StatusBar } from "expo-status-bar";
 
-const MISSIONS = [
+const DEFAULT_MISSIONS = [
   { id: "video", type: "CREATE", title: "Make a 30-second product video", description: "Create a short product video that shows the product clearly and naturally.", reward: 5, proof: "Video" },
   { id: "photo", type: "SHOW", title: "Take a campaign photo", description: "Visit the listed location and submit a clear photo of the campaign poster.", reward: 8, proof: "Photo" },
   { id: "review", type: "WRITE", title: "Write a short product review", description: "Write a useful, honest review explaining what stands out about the product.", reward: 3, proof: "Text" }
@@ -59,13 +60,14 @@ export default function App() {
     if (!selectedMission) return;
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) return;
-    await ImagePicker.launchCameraAsync({ mediaTypes: ["images", "videos"], quality: 0.8 });
+    const result = await ImagePicker.launchCameraAsync({ mediaTypes: ["images", "videos"], quality: 0.8 });
+    if (!result.canceled && result.assets?.[0]) setProofAsset(result.assets[0]);
   }
 
   function approveDemo() {
     if (!selectedMission) return;
     setSubmissions((current) => current.map((item) =>
-      item.missionId === selectedMission.id ? { ...item, status: PAYMENT_STATES.PAID, paid: true, paymentIntent: createPaymentIntent({ submissionId: selectedMission.id, contributor: wallet || "demo-wallet", amount: selectedMission.reward }) } : item
+      item.missionId === selectedMission.id ? { ...item, status: PAYMENT_STATES.APPROVED, paid: false, paymentIntent: createPaymentIntent({ submissionId: selectedMission.id, contributor: wallet || "demo-wallet", amount: selectedMission.reward }) } : item
     ));
     setScreen("approved");
     setScreen("approved");
@@ -204,8 +206,8 @@ export default function App() {
           <View style={styles.center}>
             <Text style={styles.eyebrow}>HOST REVIEW</Text>
             <Text style={styles.centerTitle}>Approve this submission?</Text>
-            <Text style={styles.centerCopy}>Only the host can approve or reject a submission. Approval creates a payment intent. The payment service then releases the USDC.</Text>
-            <TouchableOpacity style={styles.primary} onPress={approveDemo}><Text style={styles.primaryText}>APPROVE + RELEASE {selectedMission.reward} USDC</Text></TouchableOpacity>
+            <Text style={styles.centerCopy}>Only the host can approve or reject a submission. Approval makes the submission eligible for payout.</Text>
+            <TouchableOpacity style={styles.primary} onPress={approveDemo}><Text style={styles.primaryText}>APPROVE {selectedMission.reward} USDC</Text></TouchableOpacity>
             <TouchableOpacity style={styles.secondary} onPress={() => { setSubmissions((current) => current.map((item) => item.missionId === selectedMission.id ? { ...item, status: PAYMENT_STATES.REJECTED, paid: false } : item)); setScreen("reviewDashboard"); }}><Text style={styles.secondaryText}>REJECT / NO PAYMENT</Text></TouchableOpacity>
           </View>
         )}
