@@ -32,7 +32,7 @@ export function buildSubmission({ mission, contributor, proof }) {
 
 export function approveSubmission(submission) {
   if (!submission || submission.status !== SUBMISSION_STATUS.UNDER_REVIEW) {
-    throw new Error("Only submissions under review can be approved");
+    throw new Error("Only the host can approve submissions under review");
   }
 
   return {
@@ -44,7 +44,7 @@ export function approveSubmission(submission) {
 
 export function rejectSubmission(submission) {
   if (!submission || submission.status !== SUBMISSION_STATUS.UNDER_REVIEW) {
-    throw new Error("Only submissions under review can be rejected");
+    throw new Error("Only the host can reject submissions under review");
   }
 
   return {
