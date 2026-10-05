@@ -19,6 +19,9 @@ export default function App() {
   const [earned, setEarned] = useState(23.5);
   const [wallet, setWallet] = useState(null);
   const [role, setRole] = useState("contributor");
+  const [newMissionTitle, setNewMissionTitle] = useState("");
+  const [newMissionReward, setNewMissionReward] = useState("");
+  const [newMissionProof, setNewMissionProof] = useState("Video");
 
   async function handleConnect() {
     try {
@@ -70,7 +73,7 @@ export default function App() {
       <View style={styles.app}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => setScreen("home")}><Text style={styles.logo}>PROOF</Text></TouchableOpacity>
-          <TouchableOpacity onPress={() => setScreen(role === "host" ? "reviewDashboard" : "profile")}>
+          <TouchableOpacity onPress={() => setScreen(role === "host" ? "hostDashboard" : "profile")}>
             <View style={styles.avatar}><Text style={styles.avatarText}>{role === "host" ? "H" : "M"}</Text></View>
           </TouchableOpacity>
         </View>
@@ -127,6 +130,49 @@ export default function App() {
             <Text style={styles.centerCopy}>Your proof was submitted. It is now waiting for host approval. No payment has been released.</Text>
             <TouchableOpacity style={styles.primary} onPress={() => setScreen("reviewDashboard")}><Text style={styles.primaryText}>VIEW REVIEW FLOW</Text></TouchableOpacity>
           </View>
+        )}
+
+        {screen === "hostDashboard" && (
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <Text style={styles.eyebrow}>HOST</Text>
+            <Text style={styles.detailTitle}>Run a campaign.</Text>
+            <Text style={styles.detailCopy}>Create paid missions and review the work creators send back.</Text>
+            <View style={styles.hostStats}>
+              <View><Text style={styles.statNumber}>{MISSIONS.length}</Text><Text style={styles.statLabel}>MISSIONS</Text></View>
+              <View><Text style={styles.statNumber}>{submissions.length}</Text><Text style={styles.statLabel}>SUBMISSIONS</Text></View>
+              <View><Text style={styles.statNumber}>{submissions.filter((s) => s.status === PAYMENT_STATES.UNDER_REVIEW).length}</Text><Text style={styles.statLabel}>TO REVIEW</Text></View>
+            </View>
+            <TouchableOpacity style={styles.primary} onPress={() => setScreen("createMission")}><Text style={styles.primaryText}>CREATE MISSION</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.secondary} onPress={() => setScreen("reviewDashboard")}><Text style={styles.secondaryText}>REVIEW SUBMISSIONS</Text></TouchableOpacity>
+          </ScrollView>
+        )}
+
+        {screen === "createMission" && (
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <Text style={styles.eyebrow}>NEW MISSION</Text>
+            <Text style={styles.detailTitle}>Give creators a clear brief.</Text>
+            <Text style={styles.detailCopy}>Set the work, reward, and proof required. Payment stays locked until you approve the submission.</Text>
+            <View style={styles.formBox}>
+              <Text style={styles.formLabel}>MISSION TITLE</Text>
+              <TextInput style={styles.input} placeholder="e.g. Create a 30-second product video" placeholderTextColor="#99938A" value={newMissionTitle} onChangeText={setNewMissionTitle} />
+              <Text style={styles.formLabel}>REWARD (USDC)</Text>
+              <TextInput style={styles.input} placeholder="5" placeholderTextColor="#99938A" keyboardType="decimal-pad" value={newMissionReward} onChangeText={setNewMissionReward} />
+              <Text style={styles.formLabel}>PROOF TYPE</Text>
+              <View style={styles.proofOptions}>
+                {["Video", "Photo", "Text"].map((type) => <TouchableOpacity key={type} style={[styles.proofOption, newMissionProof === type && styles.proofOptionActive]} onPress={() => setNewMissionProof(type)}><Text style={styles.proofOptionText}>{type}</Text></TouchableOpacity>)}
+              </View>
+            </View>
+            <TouchableOpacity style={styles.primary} onPress={() => {
+              const reward = Number(newMissionReward);
+              if (!newMissionTitle.trim() || !Number.isFinite(reward) || reward <= 0) return;
+              const mission = { id: `custom_${Date.now()}`, type: newMissionProof.toUpperCase(), title: newMissionTitle.trim(), reward, proof: newMissionProof.toLowerCase(), host: wallet || "demo-host" };
+              setMissions((current) => [mission, ...current]);
+              setNewMissionTitle("");
+              setNewMissionReward("");
+              setScreen("hostDashboard");
+            }}><Text style={styles.primaryText}>PUBLISH MISSION</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.secondary} onPress={() => setScreen("hostDashboard")}><Text style={styles.secondaryText}>CANCEL</Text></TouchableOpacity>
+          </ScrollView>
         )}
 
         {screen === "reviewDashboard" && (
@@ -220,6 +266,16 @@ const styles = StyleSheet.create({
   walletButton: { marginTop: 20, backgroundColor: "#111111", borderRadius: 14, minHeight: 52, alignItems: "center", justifyContent: "center", paddingHorizontal: 18 },
   walletButtonText: { color: "#FFFFFF", fontSize: 11, fontWeight: "900", letterSpacing: 1 },
   walletAddress: { marginTop: 8, color: "#77736C", fontSize: 12, fontWeight: "700" },
+  hostStats: { flexDirection: "row", justifyContent: "space-between", marginVertical: 24, padding: 18, backgroundColor: "#E9E4DC", borderRadius: 18 },
+  statNumber: { fontSize: 22, fontWeight: "900" },
+  statLabel: { marginTop: 4, fontSize: 9, fontWeight: "900", letterSpacing: 1, color: "#77736C" },
+  formBox: { marginTop: 22, marginBottom: 18 },
+  formLabel: { marginTop: 16, marginBottom: 8, fontSize: 10, fontWeight: "900", letterSpacing: 1 },
+  input: { backgroundColor: "#F4F0E9", borderRadius: 12, padding: 15, fontSize: 15, color: "#171614" },
+  proofOptions: { flexDirection: "row", gap: 8 },
+  proofOption: { paddingVertical: 12, paddingHorizontal: 18, borderRadius: 12, borderWidth: 1, borderColor: "#C9C3B9" },
+  proofOptionActive: { backgroundColor: "#171614", borderColor: "#171614" },
+  proofOptionText: { fontWeight: "800" },
   roleSwitch: { marginBottom: 22, paddingVertical: 12, borderWidth: 1, borderColor: "#C9C3B9", borderRadius: 12, alignItems: "center" },
   roleSwitchText: { fontSize: 10, fontWeight: "900", letterSpacing: 1 },
   reviewCard: { backgroundColor: "#FFFFFF", borderRadius: 18, padding: 18, marginTop: 14, borderWidth: 1, borderColor: "#E3DED5" },
