@@ -16,6 +16,8 @@ export default function App() {
   const [screen, setScreen] = useState("home");
   const [selectedMission, setSelectedMission] = useState(null);
   const [submissions, setSubmissions] = useState([]);
+  useEffect(() => { AsyncStorage.getItem("proof_submissions").then((raw) => { if (raw) setSubmissions(JSON.parse(raw)); }).catch(() => {}); }, []);
+  useEffect(() => { AsyncStorage.setItem("proof_submissions", JSON.stringify(submissions)).catch(() => {}); }, [submissions]);
   const [earned, setEarned] = useState(23.5);
   const [wallet, setWallet] = useState(null);
   const [role, setRole] = useState("contributor");
