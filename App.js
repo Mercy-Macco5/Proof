@@ -70,8 +70,8 @@ export default function App() {
       <View style={styles.app}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => setScreen("home")}><Text style={styles.logo}>PROOF</Text></TouchableOpacity>
-          <TouchableOpacity onPress={() => setScreen(role === "creator" ? "reviewDashboard" : "profile")}>
-            <View style={styles.avatar}><Text style={styles.avatarText}>{role === "creator" ? "C" : "M"}</Text></View>
+          <TouchableOpacity onPress={() => setScreen(role === "host" ? "reviewDashboard" : "profile")}>
+            <View style={styles.avatar}><Text style={styles.avatarText}>{role === "host" ? "H" : "M"}</Text></View>
           </TouchableOpacity>
         </View>
 
@@ -91,7 +91,7 @@ export default function App() {
               <Stat label="CONTRIBUTIONS" value="12" />
               <Stat label="VERIFIED" value="91%" />
             </View>
-            <TouchableOpacity style={styles.roleSwitch} onPress={() => setRole(role === "creator" ? "contributor" : "creator")}><Text style={styles.roleSwitchText}>{role === "creator" ? "SWITCH TO CONTRIBUTOR" : "CREATOR REVIEW"}</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.roleSwitch} onPress={() => setRole(role === "host" ? "contributor" : "host")}><Text style={styles.roleSwitchText}>{role === "host" ? "SWITCH TO CONTRIBUTOR" : "HOST REVIEW"}</Text></TouchableOpacity>
             <Text style={styles.sectionTitle}>AVAILABLE</Text>
             {MISSIONS.map((mission) => <MissionCard key={mission.id} mission={mission} onPress={() => openMission(mission)} />)}
           </ScrollView>
@@ -124,14 +124,14 @@ export default function App() {
           <View style={styles.center}>
             <Text style={styles.successMark}>✓</Text>
             <Text style={styles.centerTitle}>Under review.</Text>
-            <Text style={styles.centerCopy}>Your proof was submitted. It is now waiting for creator approval. No payment has been released.</Text>
+            <Text style={styles.centerCopy}>Your proof was submitted. It is now waiting for host approval. No payment has been released.</Text>
             <TouchableOpacity style={styles.primary} onPress={() => setScreen("reviewDashboard")}><Text style={styles.primaryText}>VIEW REVIEW FLOW</Text></TouchableOpacity>
           </View>
         )}
 
         {screen === "reviewDashboard" && (
           <ScrollView showsVerticalScrollIndicator={false}>
-            <Text style={styles.eyebrow}>CREATOR</Text>
+            <Text style={styles.eyebrow}>HOST</Text>
             <Text style={styles.detailTitle}>Review work.</Text>
             <Text style={styles.detailCopy}>Only approved submissions can move to payment.</Text>
             {submissions.filter((item) => item.status === PAYMENT_STATES.UNDER_REVIEW).length === 0 ? (
@@ -150,9 +150,9 @@ export default function App() {
 
         {screen === "review" && selectedMission && (
           <View style={styles.center}>
-            <Text style={styles.eyebrow}>CREATOR REVIEW</Text>
+            <Text style={styles.eyebrow}>HOST REVIEW</Text>
             <Text style={styles.centerTitle}>Approve this submission?</Text>
-            <Text style={styles.centerCopy}>Only the campaign owner can approve a submission. Approval creates a payment intent. The payment service then releases the USDC.</Text>
+            <Text style={styles.centerCopy}>Only the host can approve or reject a submission. Approval creates a payment intent. The payment service then releases the USDC.</Text>
             <TouchableOpacity style={styles.primary} onPress={approveDemo}><Text style={styles.primaryText}>APPROVE + RELEASE {selectedMission.reward} USDC</Text></TouchableOpacity>
             <TouchableOpacity style={styles.secondary} onPress={() => { setSubmissions((current) => current.map((item) => item.missionId === selectedMission.id ? { ...item, status: PAYMENT_STATES.REJECTED, paid: false } : item)); setScreen("reviewDashboard"); }}><Text style={styles.secondaryText}>REJECT / NO PAYMENT</Text></TouchableOpacity>
           </View>
