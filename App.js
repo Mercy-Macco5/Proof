@@ -26,6 +26,9 @@ export default function App() {
   const [newMissionReward, setNewMissionReward] = useState("");
   const [newMissionProof, setNewMissionProof] = useState("Video");
   const [proofAsset, setProofAsset] = useState(null);
+  const [missions, setMissions] = useState(DEFAULT_MISSIONS);
+  useEffect(() => { AsyncStorage.getItem("proof_missions").then((raw) => { if (raw) setMissions(JSON.parse(raw)); }).catch(() => {}); }, []);
+  useEffect(() => { AsyncStorage.setItem("proof_missions", JSON.stringify(missions)).catch(() => {}); }, [missions]);
 
   async function handleConnect() {
     try {
@@ -70,7 +73,6 @@ export default function App() {
       item.missionId === selectedMission.id ? { ...item, status: PAYMENT_STATES.APPROVED, paid: false, paymentIntent: createPaymentIntent({ submissionId: selectedMission.id, contributor: wallet || "demo-wallet", amount: selectedMission.reward }) } : item
     ));
     setScreen("approved");
-    setScreen("approved");
   }
 
   return (
@@ -102,7 +104,7 @@ export default function App() {
             </View>
             <TouchableOpacity style={styles.roleSwitch} onPress={() => setRole(role === "host" ? "contributor" : "host")}><Text style={styles.roleSwitchText}>{role === "host" ? "SWITCH TO CONTRIBUTOR" : "HOST REVIEW"}</Text></TouchableOpacity>
             <Text style={styles.sectionTitle}>AVAILABLE</Text>
-            {MISSIONS.map((mission) => <MissionCard key={mission.id} mission={mission} onPress={() => openMission(mission)} />)}
+            {missions.map((mission) => <MissionCard key={mission.id} mission={mission} onPress={() => openMission(mission)} />)}
           </ScrollView>
         )}
 
@@ -144,7 +146,7 @@ export default function App() {
             <Text style={styles.detailTitle}>Run a campaign.</Text>
             <Text style={styles.detailCopy}>Create paid missions and review the work creators send back.</Text>
             <View style={styles.hostStats}>
-              <View><Text style={styles.statNumber}>{MISSIONS.length}</Text><Text style={styles.statLabel}>MISSIONS</Text></View>
+              <View><Text style={styles.statNumber}>{missions.length}</Text><Text style={styles.statLabel}>MISSIONS</Text></View>
               <View><Text style={styles.statNumber}>{submissions.length}</Text><Text style={styles.statLabel}>SUBMISSIONS</Text></View>
               <View><Text style={styles.statNumber}>{submissions.filter((s) => s.status === PAYMENT_STATES.UNDER_REVIEW).length}</Text><Text style={styles.statLabel}>TO REVIEW</Text></View>
             </View>
@@ -171,7 +173,7 @@ export default function App() {
             <TouchableOpacity style={styles.primary} onPress={() => {
               const reward = Number(newMissionReward);
               if (!newMissionTitle.trim() || !Number.isFinite(reward) || reward <= 0) return;
-              const mission = { id: `custom_${Date.now()}`, type: newMissionProof.toUpperCase(), title: newMissionTitle.trim(), reward, proof: newMissionProof.toLowerCase(), host: wallet || "demo-host" };
+              const mission = { id: `custom_${Date.now()}`, type: newMissionProof.toUpperCase(), title: newMissionTitle.trim(), description: `Submit a clear ${newMissionProof.toLowerCase()} that matches the mission brief.`, reward, proof: newMissionProof.toLowerCase(), host: wallet || "demo-host" };
               setMissions((current) => [mission, ...current]);
               setNewMissionTitle("");
               setNewMissionReward("");
@@ -189,7 +191,7 @@ export default function App() {
             {submissions.filter((item) => item.status === PAYMENT_STATES.UNDER_REVIEW).length === 0 ? (
               <View style={styles.emptyBox}><Text style={styles.emptyTitle}>No pending submissions</Text><Text style={styles.emptyCopy}>New contributor submissions will appear here.</Text></View>
             ) : submissions.filter((item) => item.status === PAYMENT_STATES.UNDER_REVIEW).map((item) => {
-              const mission = MISSIONS.find((m) => m.id === item.missionId);
+              const mission = missions.find((m) => m.id === item.missionId);
               return <View key={item.missionId} style={styles.reviewCard}>
                 <Text style={styles.eyebrow}>{mission?.type}</Text>
                 <Text style={styles.reviewTitle}>{mission?.title}</Text>
