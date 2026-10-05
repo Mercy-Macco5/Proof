@@ -67,7 +67,7 @@ export default function App() {
     setSubmissions((current) => current.map((item) =>
       item.missionId === selectedMission.id ? { ...item, status: PAYMENT_STATES.PAID, paid: true, paymentIntent: createPaymentIntent({ submissionId: selectedMission.id, contributor: wallet || "demo-wallet", amount: selectedMission.reward }) } : item
     ));
-    setEarned((value) => value + selectedMission.reward);
+    setScreen("approved");
     setScreen("approved");
   }
 
@@ -214,7 +214,7 @@ export default function App() {
           <View style={styles.center}>
             <Text style={styles.successMark}>✓</Text>
             <Text style={styles.centerTitle}>Approved.</Text>
-            <Text style={styles.centerCopy}>Your submission was approved and the payment intent was created. The payout service releases {selectedMission.reward} USDC only after approval.</Text>
+            <Text style={styles.centerCopy}>Your submission was approved. {selectedMission.reward} USDC is now eligible for payout.</Text>
             <TouchableOpacity style={styles.primary} onPress={() => setScreen("profile")}><Text style={styles.primaryText}>VIEW REPUTATION</Text></TouchableOpacity>
           </View>
         )}
