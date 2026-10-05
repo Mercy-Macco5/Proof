@@ -11,6 +11,7 @@ export const PAYMENT_STATES = Object.freeze({
   SUBMITTED: "SUBMITTED",
   UNDER_REVIEW: "UNDER REVIEW",
   APPROVED: "APPROVED",
+  PAYOUT_PENDING: "PAYOUT PENDING",
   REJECTED: "REJECTED",
   PAID: "PAID",
 });
@@ -32,6 +33,6 @@ export function createPaymentIntent({ submissionId, contributor, amount }) {
     mint: DEVNET_USDC_MINT.toBase58(),
     network: NETWORK,
     releaseCondition: "APPROVED",
-    status: "PENDING_APPROVAL",
+    status: "PAYOUT_PENDING",
   };
 }
