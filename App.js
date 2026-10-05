@@ -22,6 +22,7 @@ export default function App() {
   const [newMissionTitle, setNewMissionTitle] = useState("");
   const [newMissionReward, setNewMissionReward] = useState("");
   const [newMissionProof, setNewMissionProof] = useState("Video");
+  const [proofAsset, setProofAsset] = useState(null);
 
   async function handleConnect() {
     try {
@@ -46,8 +47,9 @@ export default function App() {
     if (!selectedMission) return;
     setSubmissions((current) => [
       ...current.filter((item) => item.missionId !== selectedMission.id),
-      { missionId: selectedMission.id, status: PAYMENT_STATES.UNDER_REVIEW, paid: false }
+      { missionId: selectedMission.id, status: PAYMENT_STATES.UNDER_REVIEW, paid: false, proof: proofAsset ? { uri: proofAsset.uri, type: proofAsset.type || "image", width: proofAsset.width, height: proofAsset.height } : null }
     ]);
+    setProofAsset(null);
     setScreen("submitted");
   }
 
@@ -188,6 +190,8 @@ export default function App() {
                 <Text style={styles.eyebrow}>{mission?.type}</Text>
                 <Text style={styles.reviewTitle}>{mission?.title}</Text>
                 <Text style={styles.reviewReward}>{mission?.reward} USDC pending</Text>
+                {item.proof?.uri ? <Image source={{ uri: item.proof.uri }} style={styles.proofPreview} /> : <View style={styles.noProof}><Text style={styles.noProofText}>No media attached</Text></View>}
+                <Text style={styles.proofMeta}>{item.proof?.type || "proof"} • submitted for host review</Text>
                 <TouchableOpacity style={styles.primary} onPress={() => { setSelectedMission(mission); setScreen("review"); }}><Text style={styles.primaryText}>OPEN SUBMISSION</Text></TouchableOpacity>
               </View>;
             })}
@@ -278,6 +282,10 @@ const styles = StyleSheet.create({
   proofOptionText: { fontWeight: "800" },
   roleSwitch: { marginBottom: 22, paddingVertical: 12, borderWidth: 1, borderColor: "#C9C3B9", borderRadius: 12, alignItems: "center" },
   roleSwitchText: { fontSize: 10, fontWeight: "900", letterSpacing: 1 },
+  proofPreview: { width: "100%", height: 190, borderRadius: 14, marginTop: 14, backgroundColor: "#E9E4DC" },
+  noProof: { height: 110, borderRadius: 14, marginTop: 14, backgroundColor: "#E9E4DC", alignItems: "center", justifyContent: "center" },
+  noProofText: { color: "#77736C", fontWeight: "800" },
+  proofMeta: { marginTop: 8, color: "#77736C", fontSize: 11, fontWeight: "700" },
   reviewCard: { backgroundColor: "#FFFFFF", borderRadius: 18, padding: 18, marginTop: 14, borderWidth: 1, borderColor: "#E3DED5" },
   reviewTitle: { fontSize: 20, fontWeight: "900", lineHeight: 25 },
   reviewReward: { marginTop: 10, color: "#77736C", fontSize: 13, fontWeight: "800" },
