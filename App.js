@@ -29,6 +29,9 @@ export default function App() {
   const [missions, setMissions] = useState(DEFAULT_MISSIONS);
   useEffect(() => { AsyncStorage.getItem("proof_missions").then((raw) => { if (raw) setMissions(JSON.parse(raw)); }).catch(() => {}); }, []);
   useEffect(() => { AsyncStorage.setItem("proof_missions", JSON.stringify(missions)).catch(() => {}); }, [missions]);
+  const [missions, setMissions] = useState(DEFAULT_MISSIONS);
+  useEffect(() => { AsyncStorage.getItem("proof_missions").then((raw) => { if (raw) setMissions(JSON.parse(raw)); }).catch(() => {}); }, []);
+  useEffect(() => { AsyncStorage.setItem("proof_missions", JSON.stringify(missions)).catch(() => {}); }, [missions]);
 
   async function handleConnect() {
     try {
